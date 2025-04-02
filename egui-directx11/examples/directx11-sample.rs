@@ -1,6 +1,6 @@
 use egui_directx11::DirectX11Renderer;
+use windows::core::Interface;
 use std::mem::transmute;
-use windows::core::ComInterface;
 use windows::Win32::Foundation::*;
 use windows::Win32::Graphics::Direct3D::*;
 use windows::Win32::Graphics::Direct3D11::*;
@@ -11,7 +11,6 @@ use winit::event::{Event, WindowEvent};
 use winit::event_loop::EventLoop;
 use winit::platform::windows::*;
 use winit::window::WindowBuilder;
-
 const WINDOW_WIDTH: f64 = 760.0;
 const WINDOW_HEIGHT: f64 = 760.0;
 
@@ -79,7 +78,7 @@ fn create_swapchain(device: &ID3D11Device, window: HWND) -> Result<IDXGISwapChai
 }
 
 fn get_dxgi_factory(device: &ID3D11Device) -> Result<IDXGIFactory2> {
-    let dxdevice = device.cast::<IDXGIDevice>()?;
+    let dxdevice = unsafe { IDXGIDevice::from_raw(device.as_raw()) };
     unsafe { Ok(dxdevice.GetAdapter()?.GetParent()?) }
 }
 
@@ -122,7 +121,7 @@ fn main() -> Result<()> {
                 .expect("successful render");
 
             // you handle the swapchain present
-            let _ = unsafe { swapchain.Present(1, 0) };
+            let _ = unsafe { swapchain.Present(1, windows::Win32::Graphics::Dxgi::DXGI_PRESENT(0)) };
         }
         Event::WindowEvent {
             event: WindowEvent::CloseRequested,

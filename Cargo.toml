@@ -6,8 +6,9 @@ members = ["egui-directx9", "egui-directx11", "egui-directx12", "egui-win32"]
 license = "MIT"
 
 [workspace.dependencies]
-windows = "0.48.0"
-egui = "0.22.0"
+windows = "0.59.0"
+egui = "0.31.1"
+clipboard = "0.5.0"
 
 # My blessed decisions.
 thiserror = "1.0.40"

@@ -1,9 +1,8 @@
 use egui::{epaint::Vertex, Mesh, Pos2, Rect, Rgba, TextureId};
 use std::mem::size_of;
-use windows::Win32::Graphics::Direct3D11::{
-    ID3D11Buffer, ID3D11Device, D3D11_BIND_INDEX_BUFFER, D3D11_BIND_VERTEX_BUFFER,
-    D3D11_BUFFER_DESC, D3D11_SUBRESOURCE_DATA, D3D11_USAGE_DEFAULT,
-};
+use windows::Win32::Graphics::{Direct3D11::{
+    self, ID3D11Buffer, ID3D11Device, D3D11_BIND_INDEX_BUFFER, D3D11_BIND_VERTEX_BUFFER, D3D11_BUFFER_DESC, D3D11_SUBRESOURCE_DATA, D3D11_USAGE_DEFAULT
+}};
 
 use crate::RenderError;
 
@@ -66,7 +65,7 @@ pub fn create_vertex_buffer(
     let desc = D3D11_BUFFER_DESC {
         ByteWidth: (mesh.vertices.len() * size_of::<GpuVertex>()) as u32,
         Usage: D3D11_USAGE_DEFAULT,
-        BindFlags: D3D11_BIND_VERTEX_BUFFER,
+        BindFlags: D3D11_BIND_VERTEX_BUFFER.0 as _,
         ..Default::default()
     };
 
@@ -89,7 +88,7 @@ pub fn create_index_buffer(
     let desc = D3D11_BUFFER_DESC {
         ByteWidth: (mesh.indices.len() * size_of::<u32>()) as u32,
         Usage: D3D11_USAGE_DEFAULT,
-        BindFlags: D3D11_BIND_INDEX_BUFFER,
+        BindFlags: D3D11_BIND_INDEX_BUFFER.0 as _,
         ..Default::default()
     };
 

@@ -12,5 +12,6 @@ windows = { workspace = true, features = [
     "Win32_System_WindowsProgramming",
     "Win32_Foundation",
     "Win32_UI_Input_KeyboardAndMouse",
+    "Wdk_System_SystemInformation"
 ] }
-clipboard-win = "4.5.0"
+clipboard = {workspace = true }

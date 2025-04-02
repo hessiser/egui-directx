@@ -299,9 +299,10 @@ impl InputManager {
     pub fn get_system_time() -> f64 {
         let mut time = 0;
         unsafe {
-            if NtQuerySystemTime(&mut time).is_err() {
-                println!("Failed to get system time");
-            }
+            expect!(
+                NtQuerySystemTime(&mut time).ok(),
+                "Failed to get system time"
+            );
         }
 
         // dumb ass, read the docs. egui clearly says `in seconds`.
@@ -315,9 +316,10 @@ impl InputManager {
     pub fn get_screen_size(&self) -> Pos2 {
         let mut rect = RECT::default();
         unsafe {
-            if GetClientRect(self.hwnd, &mut rect).is_err() {
-                println!("Failed to GetClientRect()");                
-            }
+            expect!(
+                GetClientRect(self.hwnd, &mut rect),
+                "Failed to GetClientRect()"
+            );
         }
 
         Pos2::new(

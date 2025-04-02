@@ -8,8 +8,7 @@ use crate::{
 use egui::{epaint::Primitive, Context};
 use std::mem::size_of;
 use windows::{
-    core::HRESULT,
-    s,
+    core::{s, HRESULT},
     Win32::{
         Foundation::{HWND, RECT},
         Graphics::{
@@ -89,11 +88,11 @@ impl DirectX11Renderer {
         context: egui::Context,
     ) -> Result<Self, RenderError> {
         unsafe {
-            let mut swap_chain_desc = DXGI_SWAP_CHAIN_DESC::default();
-            swapchain.GetDesc(&mut swap_chain_desc)?;
+            let swap_chain_desc = DXGI_SWAP_CHAIN_DESC::default();
+            swapchain.GetDesc()?;
 
             let hwnd = swap_chain_desc.OutputWindow;
-            if hwnd.0 == -1 {
+            if hwnd.is_invalid() {
                 return Err(RenderError::General(
                     "Trying to initialize from a swapchain with an invalid hwnd",
                 ));
@@ -158,7 +157,7 @@ impl DirectX11Renderer {
 
             let primitives = self
                 .context
-                .tessellate(output.shapes)
+                .tessellate(output.shapes, output.pixels_per_point)
                 .into_iter()
                 .filter_map(|prim| {
                     if let Primitive::Mesh(mesh) = prim.primitive {
@@ -287,7 +286,7 @@ impl DirectX11Renderer {
             dev.CreateBlendState(&blend_desc, Some(&mut blend_state))?;
             let blend_state =
                 blend_state.ok_or(RenderError::General("Unable to set blend state"))?;
-            ctx.OMSetBlendState(&blend_state, Some([0., 0., 0., 0.].as_ptr()), 0xffffffff);
+            ctx.OMSetBlendState(&blend_state, Some(&[0., 0., 0., 0.]), 0xffffffff);
         }
 
         Ok(())

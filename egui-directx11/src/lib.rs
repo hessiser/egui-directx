@@ -1,8 +1,22 @@
+macro_rules! expect {
+    ($val:expr, $msg:expr) => {
+            $val.expect($msg)
+        // if cfg!(feature = "silent") {
+        //     $val.unwrap()
+        // } else {
+        //     $val.expect($msg)
+        // }
+    };
+}
+
+
 mod backup;
 mod mesh;
 mod painter;
 mod shader;
 mod texture;
+pub mod app;
+mod input_manager;
 
 pub use painter::*;
 

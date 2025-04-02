@@ -68,6 +68,12 @@ impl TextureAllocator {
     fn free(&mut self, tid: TextureId) -> bool {
         self.allocated.remove(&tid).is_some()
     }
+    
+    pub fn process_free_deltas(&mut self, delta: &TexturesDelta) {
+        delta.free.iter().for_each(|tid| {
+            self.free(*tid);
+        });
+    }
 
     fn update_partial(
         &mut self,
@@ -138,15 +144,15 @@ impl TextureAllocator {
                 Quality: 0,
             },
             Usage: D3D11_USAGE_DYNAMIC,
-            BindFlags: D3D11_BIND_SHADER_RESOURCE,
-            CPUAccessFlags: D3D11_CPU_ACCESS_WRITE,
+            BindFlags: D3D11_BIND_SHADER_RESOURCE.0 as _,
+            CPUAccessFlags: D3D11_CPU_ACCESS_WRITE.0 as _,
             ..Default::default()
         };
 
         // rust is cringe sometimes
         let width = image.width();
         let pixels = match image {
-            ImageData::Color(c) => c.pixels,
+            ImageData::Color(c) => c.pixels.clone(),
             ImageData::Font(f) => f
                 .pixels
                 .iter()
