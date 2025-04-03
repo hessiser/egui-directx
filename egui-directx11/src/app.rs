@@ -3,8 +3,10 @@
 // sy1ntexx's egui-d3d11
 // https://github.com/ohchase/egui-directx
 
+use std::ptr::null;
+
 use egui::{epaint::Primitive, Context};
-use windows::{core::s, Win32::{
+use windows::{core::{s, HRESULT}, Win32::{
     Foundation::{HWND, LPARAM, RECT, WPARAM}, Graphics::Dxgi::IDXGISwapChain, UI::WindowsAndMessaging::GetClientRect},
 };
 use windows::Win32::Graphics::{Direct3D::D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, Direct3D11::{ID3D11BlendState, ID3D11Device, ID3D11DeviceContext, ID3D11InputLayout, ID3D11RasterizerState, ID3D11RenderTargetView, ID3D11SamplerState, ID3D11Texture2D, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_BLEND_DESC, D3D11_BLEND_INV_SRC_ALPHA, D3D11_BLEND_ONE, D3D11_BLEND_OP_ADD, D3D11_BLEND_SRC_ALPHA, D3D11_COLOR_WRITE_ENABLE_ALL, D3D11_COMPARISON_ALWAYS, D3D11_CULL_NONE, D3D11_FILL_SOLID, D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_INPUT_ELEMENT_DESC, D3D11_INPUT_PER_VERTEX_DATA, D3D11_RASTERIZER_DESC, D3D11_RENDER_TARGET_BLEND_DESC, D3D11_SAMPLER_DESC, D3D11_TEXTURE_ADDRESS_BORDER, D3D11_VIEWPORT}, Dxgi::Common::{DXGI_FORMAT_R32G32B32A32_FLOAT, DXGI_FORMAT_R32G32_FLOAT, DXGI_FORMAT_R32_UINT}};
@@ -208,6 +210,40 @@ impl<T> EguiDx11<T> {
 
         }
 
+    }
+
+    
+    /// Call when resizing buffers.
+    /// Do not call the original function before it, instead call it inside of the `original` closure.
+    /// # Behavior
+    /// In `origin` closure make sure to call the original `ResizeBuffers`.
+    pub fn resize_buffers(
+        &mut self,
+        swap_chain: &IDXGISwapChain,
+        original: impl FnOnce() -> HRESULT,
+    ) -> HRESULT {
+        unsafe {
+            drop(self.render_view.take());
+
+            let result = original();
+
+            let backbuffer: ID3D11Texture2D = expect!(
+                swap_chain.GetBuffer(0),
+                "Failed to get swapchain's backbuffer"
+            );
+
+            let device: ID3D11Device =
+                expect!(swap_chain.GetDevice(), "Failed to get swapchain's device");
+
+            let mut new_view: Option<ID3D11RenderTargetView> = None;
+            expect!(
+                device.CreateRenderTargetView(&backbuffer, Some(null()), Some(&mut new_view)),
+                "Failed to create render target view"
+            );
+
+            self.render_view = new_view;
+            result
+        }
     }
 
     #[inline]
