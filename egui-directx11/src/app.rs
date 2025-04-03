@@ -46,17 +46,17 @@ const INPUT_ELEMENTS_DESC: [D3D11_INPUT_ELEMENT_DESC; 3] = [
 ];
 
 pub struct EguiDx11<T> {
-    render_view: Option<ID3D11RenderTargetView>,
-    ui_fn: Box<dyn FnMut(&Context, &mut T) + 'static>,
-    ui_state: T,
+    pub render_view: Option<ID3D11RenderTargetView>,
+    pub ui_fn: Box<dyn FnMut(&Context, &mut T) + 'static>,
+    pub ui_state: T,
     pub hwnd: HWND,
-    tex_alloc: TextureAllocator,
-    input_layout: ID3D11InputLayout,
-    input_manager: InputManager,
-    shaders: CompiledShaders,
-    backup: BackupState,
-    ctx: Context,
-    should_reset: bool,
+    pub tex_alloc: TextureAllocator,
+    pub input_layout: ID3D11InputLayout,
+    pub input_manager: InputManager,
+    pub shaders: CompiledShaders,
+    pub backup: BackupState,
+    pub ctx: Context,
+    pub should_reset: bool,
     // // get it? tEx-man? tax-man? no?
     // tex_man: TextureManager,
     // buffers: Buffers,
@@ -264,7 +264,7 @@ unsafe fn get_device_and_context(swap: &IDXGISwapChain) -> (ID3D11Device, ID3D11
 
 
 impl<T> EguiDx11<T> {
-    fn get_screen_size(&self) -> (f32, f32) {
+    pub fn get_screen_size(&self) -> (f32, f32) {
         let mut rect = RECT::default();
         unsafe {
             expect!(

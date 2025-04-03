@@ -16,7 +16,7 @@ mod painter;
 mod shader;
 mod texture;
 pub mod app;
-mod input_manager;
+pub mod input_manager;
 
 pub use painter::*;
 
