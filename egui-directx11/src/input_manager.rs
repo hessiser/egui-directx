@@ -231,7 +231,6 @@ impl InputManager {
                 self.modifiers = Some(modifiers);
 
                 if let Some(key) = get_key(wparam) {
-                    println!("EGUI: {}", key.name());
                     if key == Key::V && modifiers.ctrl {
                         if let Some(clipboard) = get_clipboard_text() {
                             self.events.push(Event::Text(clipboard));
