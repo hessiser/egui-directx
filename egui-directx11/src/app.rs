@@ -3,8 +3,9 @@
 // sy1ntexx's egui-d3d11
 // https://github.com/ohchase/egui-directx
 
-use std::ptr::null;
+use std::{ptr::null, sync::Mutex};
 
+use clipboard::{windows_clipboard::WindowsClipboardContext, ClipboardProvider};
 use egui::{epaint::Primitive, Context};
 use windows::{core::{s, HRESULT}, Win32::{
     Foundation::{HWND, LPARAM, RECT, WPARAM}, Graphics::Dxgi::IDXGISwapChain, UI::WindowsAndMessaging::GetClientRect},
@@ -55,14 +56,8 @@ pub struct EguiDx11<T> {
     pub input_manager: InputManager,
     pub shaders: CompiledShaders,
     pub backup: BackupState,
-    pub ctx: Context,
+    pub ctx: Mutex<Context>,
     pub should_reset: bool,
-    // // get it? tEx-man? tax-man? no?
-    // tex_man: TextureManager,
-    // buffers: Buffers,
-    // prims: Vec<MeshDescriptor>,
-    // last_idx_capacity: usize,
-    // last_vtx_capacity: usize,
 }
 
 impl<T> EguiDx11<T> {
@@ -108,7 +103,7 @@ impl<T> EguiDx11<T> {
                 backup: BackupState::default(),
                 tex_alloc: TextureAllocator::default(),
                 input_manager: InputManager::new(hwnd),
-                ctx: Context::default(),
+                ctx: context.into(),
                 should_reset: false,
                 input_layout: input_layout.unwrap(),
                 render_view,
@@ -128,6 +123,7 @@ impl<T> EguiDx11<T> {
 
     pub fn present(&mut self, swap_chain: &IDXGISwapChain) {
         unsafe {
+            let egui_ctx = self.ctx.lock().unwrap();
             let (dev, ctx) = &get_device_and_context(swap_chain);
             self.backup.save(ctx);
 
@@ -137,8 +133,9 @@ impl<T> EguiDx11<T> {
                 ctx.ClearRenderTargetView(self.render_view.as_ref().unwrap(), &[0.39, 0.58, 0.92, 1.0]);
             }
 
-            let output = self.ctx.run(self.input_manager.collect_input(), |ctx| {
+            let output = egui_ctx.run(self.input_manager.collect_input(), |ctx| {
                 // safe. present will never run in parallel.
+                // hey, so that was a f lie ^
                 (self.ui_fn)(ctx, &mut self.ui_state)
             });
 
@@ -148,19 +145,16 @@ impl<T> EguiDx11<T> {
             }
 
             if self.should_reset {
-                self.ctx.request_repaint();
+                egui_ctx.request_repaint();
 
                 self.should_reset = false;
             }
 
+            if !output.platform_output.copied_text.is_empty() {
+                let _ = WindowsClipboardContext.set_contents(output.platform_output.copied_text);
+            }
 
-            // // It this necessary?
-            // if !output.platform_output.copied_text.is_empty() {
-            //     let _ = WindowsClipboardContext.set_contents(output.platform_output.copied_text);
-            // }
-
-            let primitives = self
-                .ctx
+            let primitives = egui_ctx
                 .tessellate(output.shapes, output.pixels_per_point)
                 .into_iter()
                 .filter_map(|prim| {
@@ -207,7 +201,6 @@ impl<T> EguiDx11<T> {
             }
 
             self.backup.restore(ctx);
-
         }
 
     }
