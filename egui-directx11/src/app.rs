@@ -5,7 +5,7 @@
 
 use std::{ptr::null, sync::Mutex};
 
-use clipboard::{windows_clipboard::WindowsClipboardContext, ClipboardProvider};
+use arboard::{Clipboard, ImageData};
 use egui::{epaint::Primitive, Context};
 use windows::{core::{s, HRESULT}, Win32::{
     Foundation::{HWND, LPARAM, RECT, WPARAM}, Graphics::Dxgi::IDXGISwapChain, UI::WindowsAndMessaging::GetClientRect},
@@ -144,15 +144,38 @@ impl<T> EguiDx11<T> {
                     .process_deltas(dev, ctx, output.textures_delta).unwrap();
             }
 
-            if self.should_reset {
-                egui_ctx.request_repaint();
+            // if self.should_reset {
+            //     egui_ctx.request_repaint();
 
-                self.should_reset = false;
+            //     self.should_reset = false;
+            // }
+
+            if output.shapes.is_empty() {
+                self.backup.restore(ctx);
+                return;
             }
 
-            if !output.platform_output.copied_text.is_empty() {
-                let _ = WindowsClipboardContext.set_contents(output.platform_output.copied_text);
+            let mut clipboard = Clipboard::new().unwrap();
+
+            for cmd in output.platform_output.commands {
+                match cmd {
+                    egui::OutputCommand::CopyText(text) => clipboard.set_text(text),
+                    egui::OutputCommand::CopyImage(color_image) => clipboard.set_image(ImageData {
+                        width: color_image.width(),
+                        height: color_image.height(),
+                        bytes: color_image.pixels
+                            .iter()
+                            .map(|pixel| pixel.to_array())
+                            .flatten()
+                            .collect()
+                    }),
+                    egui::OutputCommand::OpenUrl(open_url) => clipboard.set_text(open_url.url),
+                };
             }
+
+            // if !output.platform_output.copied_text.is_empty() {
+            //     let _ = WindowsClipboardContext.set_contents(output.platform_output.copied_text);
+            // }
 
             let primitives = egui_ctx
                 .tessellate(output.shapes, output.pixels_per_point)

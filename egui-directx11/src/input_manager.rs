@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use clipboard::{windows_clipboard::WindowsClipboardContext, ClipboardProvider};
+use arboard::Clipboard;
 use egui::{
     Event, Key, Modifiers, MouseWheelUnit, PointerButton, Pos2, RawInput, Rect, Theme, Vec2,
 };
@@ -369,6 +369,21 @@ fn get_key_modifiers(msg: u32) -> Modifiers {
 
 fn get_key(wparam: usize) -> Option<Key> {
     match wparam {
+        0x08 => Some(Key::Backspace),
+        0x09 => Some(Key::Tab),
+        0x0D => Some(Key::Enter),
+        0x1B => Some(Key::Escape),
+        0x20 => Some(Key::Space),
+        0x21 => Some(Key::PageUp),
+        0x22 => Some(Key::PageDown),
+        0x23 => Some(Key::End),
+        0x24 => Some(Key::Home),
+        0x25 => Some(Key::ArrowLeft),
+        0x26 => Some(Key::ArrowUp),
+        0x27 => Some(Key::ArrowRight),
+        0x28 => Some(Key::ArrowDown),
+        0x2D => Some(Key::Insert),
+        0x2E => Some(Key::Delete),
         0x30 => Some(Key::Num0),
         0x31 => Some(Key::Num1),
         0x32 => Some(Key::Num2),
@@ -379,7 +394,6 @@ fn get_key(wparam: usize) -> Option<Key> {
         0x37 => Some(Key::Num7),
         0x38 => Some(Key::Num8),
         0x39 => Some(Key::Num9),
-
         0x41 => Some(Key::A),
         0x42 => Some(Key::B),
         0x43 => Some(Key::C),
@@ -406,19 +420,6 @@ fn get_key(wparam: usize) -> Option<Key> {
         0x58 => Some(Key::X),
         0x59 => Some(Key::Y),
         0x5A => Some(Key::Z),
-
-        0x20 => Some(Key::Space),
-        0x21 => Some(Key::PageUp),
-        0x22 => Some(Key::PageDown),
-        0x23 => Some(Key::End),
-        0x24 => Some(Key::Home),
-        0x25 => Some(Key::ArrowLeft),
-        0x26 => Some(Key::ArrowUp),
-        0x27 => Some(Key::ArrowRight),
-        0x28 => Some(Key::ArrowDown),
-        0x2D => Some(Key::Insert),
-        0x2E => Some(Key::Delete),
-
         0x70 => Some(Key::F1),
         0x71 => Some(Key::F2),
         0x72 => Some(Key::F3),
@@ -431,21 +432,34 @@ fn get_key(wparam: usize) -> Option<Key> {
         0x79 => Some(Key::F10),
         0x7A => Some(Key::F11),
         0x7B => Some(Key::F12),
-
-        0xBD => Some(Key::Minus),
-        0xBB => Some(Key::Equals),
-        0xDB => Some(Key::OpenBracket),
-        0xDD => Some(Key::CloseBracket),
-        0xDC => Some(Key::Backslash),
+        0x7C => Some(Key::F13),
+        0x7D => Some(Key::F14),
+        0x7E => Some(Key::F15),
+        0x7F => Some(Key::F16),
+        0x80 => Some(Key::F17),
+        0x81 => Some(Key::F18),
+        0x82 => Some(Key::F19),
+        0x83 => Some(Key::F20),
+        0x84 => Some(Key::F21),
+        0x85 => Some(Key::F22),
+        0x86 => Some(Key::F23),
+        0x87 => Some(Key::F24),
         0xBA => Some(Key::Semicolon),
-        0xBF => Some(Key::Comma),
+        0xBB => Some(Key::Equals),
+        0xBC => Some(Key::Comma),
+        0xBD => Some(Key::Minus),
         0xBE => Some(Key::Period),
-        0xC2 => Some(Key::Slash),
-
+        0xBF => Some(Key::Slash),
+        0xC0 => Some(Key::Backtick),
+        0xDB => Some(Key::OpenBracket),
+        0xDC => Some(Key::Backslash),
+        0xDD => Some(Key::CloseBracket),
+        0xDE => Some(Key::Quote),
         _ => None,
     }
 }
 
 fn get_clipboard_text() -> Option<String> {
-    WindowsClipboardContext.get_contents().ok()
+    let mut clipboard = Clipboard::new().unwrap();
+    clipboard.get_text().ok()
 }
