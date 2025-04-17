@@ -124,6 +124,14 @@ impl<T> EguiDx11<T> {
     pub fn present(&mut self, swap_chain: &IDXGISwapChain) {
         unsafe {
             let egui_ctx = self.ctx.lock().unwrap();
+
+            let input = self.input_manager.collect_input();
+            let output = egui_ctx.run(input, |ctx| {
+                // safe. present will never run in parallel.
+                (self.ui_fn)(ctx, &mut self.ui_state)
+            });
+            
+
             let (dev, ctx) = &get_device_and_context(swap_chain);
             self.backup.save(ctx);
 
@@ -132,12 +140,6 @@ impl<T> EguiDx11<T> {
             if cfg!(feature = "clear") {
                 ctx.ClearRenderTargetView(self.render_view.as_ref().unwrap(), &[0.39, 0.58, 0.92, 1.0]);
             }
-
-            let output = egui_ctx.run(self.input_manager.collect_input(), |ctx| {
-                // safe. present will never run in parallel.
-                // hey, so that was a f lie ^
-                (self.ui_fn)(ctx, &mut self.ui_state)
-            });
 
             if !output.textures_delta.is_empty() {
                 self.tex_alloc
